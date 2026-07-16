@@ -1,4 +1,4 @@
-name: Playwright API Tests
+name: Playwright API and Web Tests
 
 on:
   push:
@@ -22,8 +22,8 @@ concurrency:
 
 jobs:
   # ── Sharded test execution ────────────────────────────────────────────────
-  test:
-    name: "Tests (shard ${{ matrix.shard }}/4)"
+  api-tests:
+    name: "API Tests (shard ${{ matrix.shard }}/4)"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -46,8 +46,8 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run shard ${{ matrix.shard }}/4
-        run: npx playwright test --shard=${{ matrix.shard }}/4
+      - name: Run API shard ${{ matrix.shard }}/4
+        run: npx playwright test --project=api-tests --shard=${{ matrix.shard }}/4
         env:
           TEST_ENV:            ${{ github.event.inputs.environment || 'test' }}
           CI:                  'true'
@@ -65,7 +65,41 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: blob-report-shard-${{ matrix.shard }}
+          name: blob-report-api-shard-${{ matrix.shard }}
+          path: blob-report/
+          retention-days: 7
+
+  web-tests:
+    name: Web Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Web tests
+        run: npx playwright test --project=web-tests
+        env:
+          TEST_ENV: ${{ github.event.inputs.environment || 'test' }}
+          CI: 'true'
+
+      - name: Upload blob report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-web
           path: blob-report/
           retention-days: 7
 
@@ -73,7 +107,7 @@ jobs:
   merge-reports:
     name: Merge reports and publish
     if: always()
-    needs: [test]
+    needs: [api-tests, web-tests]
     runs-on: ubuntu-latest
 
     steps:
@@ -93,7 +127,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: all-blob-reports
-          pattern: blob-report-shard-*
+          pattern: blob-report-*
           merge-multiple: true
 
       - name: Merge blob reports into HTML report
