@@ -9,6 +9,15 @@
 
 Production-oriented Playwright framework that combines API automation and browser automation in one TypeScript codebase. It is built around reusable fixtures, typed domain clients, environment-aware configuration, custom assertions, schema validation, and CI-ready reporting.
 
+## 📚 Concept Playbooks
+
+Use these quick-reference playbooks to understand the core testing concepts used in this framework:
+
+- 🔌 API Concepts Playbook: [Playwright API Playbook](https://mahiteja.github.io/playwright-api-playbook/)
+  Covers API-first test design, request/response validation, authentication patterns, and resilient API automation techniques.
+- 🖥️ Web Concepts Playbook: [Playwright TypeScript Playbook](https://mahiteja.github.io/playwright-typescript-playbook/)
+  Covers locator strategy, page-object patterns, UI stability practices, and maintainable end-to-end browser workflows.
+
 This project is aimed at external developers and open-source contributors who want to:
 
 - validate REST APIs quickly with typed helpers
