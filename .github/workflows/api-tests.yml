@@ -1,0 +1,138 @@
+name: Playwright API Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  # Manual trigger with environment choice
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'test'
+        type: choice
+        options: [test, uat]
+
+# Cancel in-progress runs on the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Sharded test execution ────────────────────────────────────────────────
+  test:
+    name: "Tests (shard ${{ matrix.shard }}/4)"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run shard ${{ matrix.shard }}/4
+        run: npx playwright test --shard=${{ matrix.shard }}/4
+        env:
+          TEST_ENV:            ${{ github.event.inputs.environment || 'test' }}
+          CI:                  'true'
+          # Secrets injected from repository / environment secrets
+          BASE_URL:            ${{ secrets.BASE_URL }}
+          BEARER_TOKEN:        ${{ secrets.BEARER_TOKEN }}
+          API_KEY:             ${{ secrets.API_KEY }}
+          BASIC_USER:          ${{ secrets.BASIC_USER }}
+          BASIC_PASS:          ${{ secrets.BASIC_PASS }}
+          OAUTH_CLIENT_ID:     ${{ secrets.OAUTH_CLIENT_ID }}
+          OAUTH_CLIENT_SECRET: ${{ secrets.OAUTH_CLIENT_SECRET }}
+          OAUTH_TOKEN_URL:     ${{ secrets.OAUTH_TOKEN_URL }}
+
+      - name: Upload blob report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-shard-${{ matrix.shard }}
+          path: blob-report/
+          retention-days: 7
+
+  # ── Merge shards + publish reports ────────────────────────────────────────
+  merge-reports:
+    name: Merge reports and publish
+    if: always()
+    needs: [test]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all blob reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-report-shard-*
+          merge-multiple: true
+
+      - name: Merge blob reports into HTML report
+        run: npx playwright merge-reports --reporter html ./all-blob-reports
+
+      - name: Upload merged HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report
+          path: playwright-report/
+          retention-days: 30
+
+      # ── Optional Allure report (requires allure-playwright reporter) ──────
+      - name: Install Allure CLI
+        run: npm install -g allure-commandline@2.29.0
+        continue-on-error: true
+
+      - name: Generate Allure report
+        run: |
+          if [ -d "allure-results" ]; then
+            allure generate allure-results --clean -o allure-report
+          else
+            echo "No allure-results directory — skipping"
+          fi
+        continue-on-error: true
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report/
+          retention-days: 30
+
+      # ── Publish HTML report to GitHub Pages (optional) ────────────────────
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir:  ./playwright-report
+        continue-on-error: true

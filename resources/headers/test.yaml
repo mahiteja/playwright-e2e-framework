@@ -1,0 +1,10 @@
+# HTTP headers injected into every request in the TEST environment.
+# Loaded by lib/utils/resourceLoader.ts at runtime.
+# Values are merged into APIRequestContext.extraHTTPHeaders.
+
+Content-Type:       "application/json"
+Accept:             "application/json"
+X-API-Version:      "1.0"
+X-Client-ID:        "playwright-test-client"
+X-Request-Source:   "playwright-api-framework"
+X-Environment:      "test"

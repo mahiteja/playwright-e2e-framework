@@ -1,0 +1,35 @@
+{
+  "name": "playwright-e2e-framework",
+  "version": "1.0.0",
+  "description": "Production-ready Playwright API and Web E2E Testing Framework with fixtures, auth flows, schema validation, and CI reporting",
+  "author": {
+    "name": "Mahiteja Bollojula",
+    "url": "https://www.linkedin.com/in/mahiteja-bollojula-477a60145/"
+  },
+  "scripts": {
+    "test": "npx playwright test",
+    "test:test": "cross-env TEST_ENV=test npx playwright test",
+    "test:uat": "cross-env TEST_ENV=uat  npx playwright test",
+    "test:debug": "npx playwright test --debug",
+    "test:ui": "npx playwright test --ui",
+    "report": "npx playwright show-report",
+    "allure:gen": "allure generate allure-results --clean -o allure-report",
+    "allure:open": "allure open allure-report",
+    "lint": "tsc --noEmit",
+    "install:pw": "npx playwright install --with-deps chromium"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "js-yaml": "^4.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.46.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.14.0",
+    "allure-commandline": "^2.43.0",
+    "allure-playwright": "^3.10.2",
+    "cross-env": "^7.0.3",
+    "typescript": "^5.5.0"
+  }
+}

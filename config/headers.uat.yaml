@@ -1,0 +1,8 @@
+# HTTP headers injected into every request in the UAT environment.
+
+Content-Type:       "application/json"
+Accept:             "application/json"
+X-API-Version:      "2.0"
+X-Client-ID:        "playwright-uat-client"
+X-Request-Source:   "playwright-api-framework"
+X-Environment:      "uat"

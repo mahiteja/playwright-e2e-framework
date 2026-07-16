@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target":            "ESNext",
+    "module":            "CommonJS",
+    "moduleResolution":  "node",
+    "esModuleInterop":   true,
+    "allowSyntheticDefaultImports": true,
+    "strict":            true,
+    "strictNullChecks":  true,
+    "outDir":            "./dist",
+    "rootDir":           "./",
+    "skipLibCheck":      true,
+    "resolveJsonModule": true,
+    "sourceMap":         true,
+    "lib":               ["ESNext"],
+    "types":             ["node"]
+  },
+  "include": [
+    "**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "playwright-report",
+    "allure-report",
+    "test-results"
+  ]
+}

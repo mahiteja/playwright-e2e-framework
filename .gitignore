@@ -1,0 +1,30 @@
+node_modules/
+dist/
+playwright-report/
+blob-report/
+test-results/
+allure-results/
+allure-report/
+*.log
+
+# Sensitive auth state — never commit
+fixtures/auth/storageState.json
+
+# Local env overrides (base env templates are versioned)
+.env.*.local
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# TLS certificates (generate locally, never commit)
+certs/*.pem
+certs/*.key
+certs/*.p12
+certs/*.pfx
