@@ -70,8 +70,12 @@ jobs:
           retention-days: 7
 
   web-tests:
-    name: Web Tests
+    name: "Web Tests (shard ${{ matrix.shard }}/4)"
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
 
     steps:
       - name: Checkout
@@ -89,8 +93,8 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run Web tests
-        run: npx playwright test --project=web-tests
+      - name: Run Web shard ${{ matrix.shard }}/4
+        run: npx playwright test --project=web-tests --shard=${{ matrix.shard }}/4
         env:
           TEST_ENV: ${{ github.event.inputs.environment || 'test' }}
           CI: 'true'
@@ -99,7 +103,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: blob-report-web
+          name: blob-report-web-shard-${{ matrix.shard }}
           path: blob-report/
           retention-days: 7
 
